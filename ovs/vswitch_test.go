@@ -752,6 +752,7 @@ func TestClientVSwitchSetInterfaceOK(t *testing.T) {
 	peer := "eth0"
 	ratePolicing := DefaultIngressRatePolicing
 	burstPolicing := DefaultIngressBurstPolicing
+	requestedMTU := 9000
 
 	// Apply Timeout option to verify arguments
 	c := testClient([]OptionFunc{Timeout(1)}, func(cmd string, args ...string) ([]byte, error) {
@@ -768,6 +769,7 @@ func TestClientVSwitchSetInterfaceOK(t *testing.T) {
 			string(ifi),
 			fmt.Sprintf("type=%s", ifiType),
 			fmt.Sprintf("options:peer=%s", peer),
+			"mtu_request=9000",
 			"ingress_policing_rate=0",
 			"ingress_policing_burst=0",
 		}
@@ -784,6 +786,7 @@ func TestClientVSwitchSetInterfaceOK(t *testing.T) {
 		Peer:                 peer,
 		IngressRatePolicing:  ratePolicing,
 		IngressBurstPolicing: burstPolicing,
+		MTURequest:           requestedMTU,
 	})
 	if err != nil {
 		t.Fatalf("unexpected error for Client.VSwitch.Set.Interface: %v", err)
@@ -884,6 +887,15 @@ func TestInterfaceOptions_slice(t *testing.T) {
 			},
 		},
 		{
+			desc: "only MTURequest",
+			i: InterfaceOptions{
+				MTURequest: 9000,
+			},
+			out: []string{
+				"mtu_request=9000",
+			},
+		},
+		{
 			desc: "only ingress policing rate",
 			i: InterfaceOptions{
 				IngressRatePolicing: 2000000,
@@ -948,10 +960,12 @@ func TestInterfaceOptions_slice(t *testing.T) {
 				Peer:                 "bond0",
 				IngressRatePolicing:  2000000,
 				IngressBurstPolicing: 200000,
+				MTURequest:           9000,
 			},
 			out: []string{
 				"type=patch",
 				"options:peer=bond0",
+				"mtu_request=9000",
 				"ingress_policing_rate=2000000",
 				"ingress_policing_burst=200000",
 			},
